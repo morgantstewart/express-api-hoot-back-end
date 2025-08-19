@@ -9,10 +9,14 @@ const saltRounds = 12;
 
 router.post('/sign-up', async (req, res) => {
   try {
+    if (!req.body.username || !req.body.password) {
+      return res.status(400).json({ err: 'Username and password are required.' });
+    }
+    
     const userInDatabase = await User.findOne({ username: req.body.username });
     
     if (userInDatabase) {
-      return res.status(409).json({err: 'Username already taken.'});
+      return res.status(409).json({ err: 'Username already taken.' });
     }
     
     const user = await User.create({
@@ -32,6 +36,10 @@ router.post('/sign-up', async (req, res) => {
 
 router.post('/sign-in', async (req, res) => {
   try {
+    if (!req.body.username || !req.body.password) {
+      return res.status(400).json({ err: 'Username and password are required.' });
+    }
+    
     const user = await User.findOne({ username: req.body.username });
     if (!user) {
       return res.status(401).json({ err: 'Invalid credentials.' });

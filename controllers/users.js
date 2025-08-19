@@ -11,13 +11,13 @@ router.get('/', verifyToken, async (req, res) => {
 
     res.json(users);
   } catch (err) {
-    res.status(500).json({ err: err.message });
+    return res.status(500).json({ err: err.message });
   }
 });
 
 router.get('/:userId', verifyToken, async (req, res) => {
   try {
-    if (req.user._id !== req.params.userId){
+    if (req.user._id.toString() !== req.params.userId){
       return res.status(403).json({ err: "Unauthorized"});
     }
 
@@ -29,7 +29,7 @@ router.get('/:userId', verifyToken, async (req, res) => {
 
     res.json({ user });
   } catch (err) {
-    res.status(500).json({ err: err.message });
+    return res.status(500).json({ err: err.message });
   }
 });
 
