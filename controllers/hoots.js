@@ -123,4 +123,69 @@ router.post("/:hootId/comments", verifyToken, async (req, res) => {
   }
 });
 
+// Update a comment
+router.put("/:hootId/comments/:commentId", verifyToken, async (req, res) => {
+  try {
+    const hoot = await Hoot.findById(req.params.hootId);
+    
+    if (!hoot) {
+      return res.status(404).json({ err: 'Hoot not found.' });
+    }
+    
+    const comment = hoot.comments.id(req.params.commentId);
+    
+    if (!comment) {
+      return res.status(404).json({ err: 'Comment not found.' });
+    }
+
+    // ensures the current user is the author of the comment
+    if (comment.author.toString() !== req.user._id) {
+      return res
+        .status(403)
+        .json({ err: "You are not authorized to edit this comment" });
+    }
+
+    comment.text = req.body.text;
+    await hoot.save();
+    
+    // Populate the author for the response
+    comment._doc.author = req.user;
+    
+    res.status(200).json(comment);
+  } catch (err) {
+    return res.status(500).json({ err: err.message });
+  }
+});
+
+// Delete a comment
+router.delete("/:hootId/comments/:commentId", verifyToken, async (req, res) => {
+  try {
+    const hoot = await Hoot.findById(req.params.hootId);
+    
+    if (!hoot) {
+      return res.status(404).json({ err: 'Hoot not found.' });
+    }
+    
+    const comment = hoot.comments.id(req.params.commentId);
+    
+    if (!comment) {
+      return res.status(404).json({ err: 'Comment not found.' });
+    }
+
+    // ensures the current user is the author of the comment
+    if (comment.author.toString() !== req.user._id) {
+      return res
+        .status(403)
+        .json({ err: "You are not authorized to delete this comment" });
+    }
+
+    comment.deleteOne();
+    await hoot.save();
+    
+    res.status(200).json({ message: "Comment deleted successfully" });
+  } catch (err) {
+    return res.status(500).json({ err: err.message });
+  }
+});
+
 module.exports = router;
