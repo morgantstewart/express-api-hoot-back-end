@@ -30,7 +30,11 @@ router.get("/", verifyToken, async (req, res) => {
 // Get a specific hoot by ID
 router.get("/:hootId", verifyToken, async (req, res) => {
   try {
-    const hoot = await Hoot.findById(req.params.hootId).populate("author");
+    // populate author of hoot and comments
+    const hoot = await Hoot.findById(req.params.hootId).populate([
+      'author',
+      'comments.author',
+    ]);
     
     if (!hoot) {
       return res.status(404).json({ err: 'Hoot not found.' });
@@ -94,15 +98,16 @@ router.delete("/:hootId", verifyToken, async (req, res) => {
   }
 });
 
-
-// controllers/hoots.js
-
-// controllers/hoots.js
-
+// Add a comment to a hoot
 router.post("/:hootId/comments", verifyToken, async (req, res) => {
   try {
     req.body.author = req.user._id;
     const hoot = await Hoot.findById(req.params.hootId);
+    
+    if (!hoot) {
+      return res.status(404).json({ err: 'Hoot not found.' });
+    }
+    
     hoot.comments.push(req.body);
     await hoot.save();
 
@@ -114,10 +119,8 @@ router.post("/:hootId/comments", verifyToken, async (req, res) => {
     // Respond with the newComment:
     res.status(201).json(newComment);
   } catch (err) {
-    res.status(500).json({ err: err.message });
+    return res.status(500).json({ err: err.message });
   }
 });
-
-
 
 module.exports = router;
